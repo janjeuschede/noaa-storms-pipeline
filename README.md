@@ -4,7 +4,15 @@ A one-command pipeline that downloads a year of NOAA Storm Events data, converts
 
 ## What it does
 
-`pipeline.sh` takes a year (default: 2024), pulls the raw `details` file from NOAA's public archive, decompresses it, and converts it to a single GeoParquet file at `data/processed/storms_{YEAR}.parquet`.
+`pipeline.sh` takes a year (default: 2025), finds the newest matching `details`
+file in NOAA's public archive, downloads and decompresses it, and converts its
+longitude and latitude columns into point geometry using WGS 84 (EPSG:4326).
+
+The pipeline creates two outputs:
+
+- `data/processed/storms_events_{YEAR}.parquet` for analysis in DuckDB,
+  GeoPandas, or other tools that support GeoParquet
+- `data/processed/storms_events_{YEAR}.gpkg` for visual exploration in QGIS
 
 Total runtime: about 90 seconds for a typical year on a home internet connection.
 
@@ -16,7 +24,8 @@ Total runtime: about 90 seconds for a typical year on a home internet connection
 
 ## How to run it
 
-Requires GDAL (for `ogr2ogr`) and standard Unix utilities (`curl`, `gunzip`).
+Requires Bash, GDAL 3.5 or newer (for `ogr2ogr` and `ogrinfo`), and the standard
+Unix utilities `curl` and `gunzip`.
 
 ```bash
 git clone https://github.com/{your-username}/noaa-storms-pipeline.git
@@ -33,7 +42,12 @@ To run for a specific year:
 
 ## What I learned
 
-[Two or three sentences. Be specific. What was harder than expected? What would you do differently? This is the part hiring managers actually read.]
+I learned how to build a repeatable command-line data pipeline with strict Bash
+error handling and cached intermediate files. One challenge was that NOAA's
+filenames contain a creation date that changes whenever data is republished, so
+the script discovers and selects the newest matching file instead of hardcoding
+the name. I also learned how GDAL turns longitude and latitude columns into
+spatial point geometry and writes the result to GeoParquet and GeoPackage.
 
 ## Stack
 
@@ -41,3 +55,4 @@ To run for a specific year:
 - curl
 - GDAL / ogr2ogr
 - GeoParquet
+- GeoPackage
